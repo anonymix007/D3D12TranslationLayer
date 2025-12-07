@@ -274,7 +274,12 @@ namespace D3D12TranslationLayer
             }
         }
         {
+#if defined(_MSC_VER) || !defined(_WIN32)
             const D3D12_RESOURCE_DESC &desc = D3D12InputStreamArguments[stream].InputStream[view].pTexture2D->GetDesc();
+#else
+            D3D12_RESOURCE_DESC desc;
+            D3D12InputStreamArguments[stream].InputStream[view].pTexture2D->GetDesc(&desc);
+#endif
             D3D12_VIDEO_PROCESS_INPUT_STREAM_DESC& inputDesc = D3D12InputStreamDesc[stream];
 
             inputDesc.Format = desc.Format;
@@ -301,8 +306,12 @@ namespace D3D12TranslationLayer
         D3D12_VIDEO_PROCESS_ORIENTATION orientation = FinalOrientation(StreamInfo[stream].OrientationInfo.Rotation, StreamInfo[stream].OrientationInfo.FlipHorizontal, StreamInfo[stream].OrientationInfo.FlipVertical);
         D3D12InputStreamArguments[stream].Transform.Orientation = orientation;
         D3D12InputStreamDesc[stream].EnableOrientation = (orientation == D3D12_VIDEO_PROCESS_ORIENTATION_DEFAULT) ? FALSE : TRUE;
-
+#if defined(_MSC_VER) || !defined(_WIN32)
         D3D12_RESOURCE_DESC desc = D3D12InputStreamArguments[stream].InputStream[0].pTexture2D->GetDesc();
+#else
+        D3D12_RESOURCE_DESC desc;
+        D3D12InputStreamArguments[stream].InputStream[0].pTexture2D->GetDesc(&desc);
+#endif
 
         if (!StreamInfo[stream].EnableSourceRect)
         {
@@ -399,7 +408,12 @@ namespace D3D12TranslationLayer
             D3D12OutputStreamArguments.OutputStream[view].Subresource = CurrentFrame[view].SubresourceSubset.MinSubresource();
         }
 
+#if defined(_MSC_VER) || !defined(_WIN32)
         const D3D12_RESOURCE_DESC &desc = D3D12OutputStreamArguments.OutputStream[0].pTexture2D->GetDesc();
+#else
+        D3D12_RESOURCE_DESC desc;
+        D3D12OutputStreamArguments.OutputStream[0].pTexture2D->GetDesc(&desc);
+#endif
         D3D12_VIDEO_PROCESS_OUTPUT_STREAM_DESC& outputDesc = D3D12OutputStreamDesc;
 
         outputDesc.Format = desc.Format;
@@ -433,7 +447,12 @@ namespace D3D12TranslationLayer
 
     void VIDEO_PROCESS_OUTPUT_ARGUMENTS::PrepareTransform()
     {
+#if defined(_MSC_VER) || !defined(_WIN32)
         D3D12_RESOURCE_DESC desc = D3D12OutputStreamArguments.OutputStream[0].pTexture2D->GetDesc();
+#else
+        D3D12_RESOURCE_DESC desc;
+        D3D12OutputStreamArguments.OutputStream[0].pTexture2D->GetDesc(&desc);
+#endif
         if (!EnableTargetRect)
         {
             // if target rectangle is not set, entire output surface according to DX11 spec
@@ -489,7 +508,7 @@ namespace D3D12TranslationLayer
                         D3D12_VIDEO_FRAME_STEREO_FORMAT_SEPARATE : D3D12_VIDEO_FRAME_STEREO_FORMAT_NONE,
                     pOutputArguments->D3D12OutputStreamDesc.FrameRate,
                 };
-                CComQIPtr<ID3D12VideoDevice> spVideoDevice = m_pParent->m_pDevice12.get();
+                CComQIIDPtr<I_ID(ID3D12VideoDevice)> spVideoDevice = m_pParent->m_pDevice12.get();
                 bNeedToDeinterlace =
                     FAILED(spVideoDevice->CheckFeatureSupport(D3D12_FEATURE_VIDEO_PROCESS_SUPPORT, &VPSupport, sizeof(VPSupport))) ||
                     (VPSupport.DeinterlaceSupport & D3D12_VIDEO_PROCESS_DEINTERLACE_FLAG_BOB) == D3D12_VIDEO_PROCESS_DEINTERLACE_FLAG_NONE;

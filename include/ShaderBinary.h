@@ -137,7 +137,7 @@ class COperandBase
 {
 public:
     COperandBase() {Clear();}
-    COperandBase(const COperandBase & Op) { memcpy(this, &Op, sizeof(*this)); }
+    COperandBase(const COperandBase & Op) { memcpy((void*) this, &Op, sizeof(*this)); }
     D3D10_SB_OPERAND_TYPE OperandType() const {return m_Type;}
     const COperandIndex* OperandIndex(UINT Index) const {return &m_Index[Index];}
     D3D10_SB_OPERAND_INDEX_REPRESENTATION OperandIndexType(UINT Index) const {return m_IndexType[Index];}
@@ -188,7 +188,7 @@ public:
 public:  //esp in the unions...it's just redundant to not directly access things
     void Clear()
     {
-        memset(this, 0, sizeof(*this));
+        memset((void *) this, 0, sizeof(*this));
     }
     MinPrecQuantizeFunctionIndex                 m_MinPrecQuantizeFunctionIndex; // used by ref for low precision (IHVs can ignore)
     D3D10_SB_OPERAND_TYPE                        m_Type;
@@ -1741,7 +1741,7 @@ public:
         {
             ClearAllocations();
         }
-        memset (this, 0, sizeof(*this));
+        memset ((void *)this, 0, sizeof(*this));
     }
     ~CInstruction()
     { 

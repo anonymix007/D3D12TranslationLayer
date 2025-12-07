@@ -143,7 +143,13 @@ ImmediateContext::ImmediateContext(UINT nodeIndex, D3D12_FEATURE_DATA_D3D12_OPTI
     D3D12_COMMAND_QUEUE_DESC SyncOnlyQueueDesc = { D3D12_COMMAND_LIST_TYPE_NONE };
     (void)m_pDevice12->CreateCommandQueue(&SyncOnlyQueueDesc, IID_PPV_ARGS(&m_pSyncOnlyQueue));
 
+#if defined(_MSC_VER) || !defined(_WIN32)
     LUID adapterLUID = pDevice->GetAdapterLuid();
+#else
+    LUID adapterLUID;
+    pDevice->GetAdapterLuid(&adapterLUID);
+#endif
+
     {
         CComPtr<IDXCoreAdapterFactory> pFactory;
 #if DYNAMIC_LOAD_DXCORE
@@ -191,8 +197,17 @@ ImmediateContext::ImmediateContext(UINT nodeIndex, D3D12_FEATURE_DATA_D3D12_OPTI
     hr = m_pDevice12->CreateDescriptorHeap(&m_ViewHeap.m_Desc, IID_PPV_ARGS(&m_ViewHeap.m_pDescriptorHeap));
     ThrowFailure(hr); //throw( _com_error )
     m_ViewHeap.m_DescriptorSize = m_pDevice12->GetDescriptorHandleIncrementSize(m_ViewHeap.m_Desc.Type);
+#if defined(_MSC_VER) || !defined(_WIN32)
     m_ViewHeap.m_DescriptorHeapBase = m_ViewHeap.m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart().ptr;
     m_ViewHeap.m_DescriptorHeapBaseCPU = m_ViewHeap.m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart().ptr;
+#else
+    D3D12_GPU_DESCRIPTOR_HANDLE gpuDesc;
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuDesc;
+    m_ViewHeap.m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart(&gpuDesc);
+    m_ViewHeap.m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart(&cpuDesc);
+    m_ViewHeap.m_DescriptorHeapBase = gpuDesc.ptr;
+    m_ViewHeap.m_DescriptorHeapBaseCPU = cpuDesc.ptr;
+#endif
     m_ViewHeap.m_BitsToSetOnNewHeap = e_ViewsDirty;
 
     if (!ComputeOnly())
@@ -200,8 +215,18 @@ ImmediateContext::ImmediateContext(UINT nodeIndex, D3D12_FEATURE_DATA_D3D12_OPTI
         hr = m_pDevice12->CreateDescriptorHeap(&m_SamplerHeap.m_Desc, IID_PPV_ARGS(&m_SamplerHeap.m_pDescriptorHeap));
         ThrowFailure(hr); //throw( _com_error )
         m_SamplerHeap.m_DescriptorSize = m_pDevice12->GetDescriptorHandleIncrementSize(m_SamplerHeap.m_Desc.Type);
+
+#if defined(_MSC_VER) || !defined(_WIN32)
         m_SamplerHeap.m_DescriptorHeapBase = m_SamplerHeap.m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart().ptr;
         m_SamplerHeap.m_DescriptorHeapBaseCPU = m_SamplerHeap.m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart().ptr;
+#else
+        D3D12_GPU_DESCRIPTOR_HANDLE gpuDesc;
+        D3D12_CPU_DESCRIPTOR_HANDLE cpuDesc;
+        m_SamplerHeap.m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart(&gpuDesc);
+        m_SamplerHeap.m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart(&cpuDesc);
+        m_SamplerHeap.m_DescriptorHeapBase = gpuDesc.ptr;
+        m_SamplerHeap.m_DescriptorHeapBaseCPU = cpuDesc.ptr;
+#endif
         m_SamplerHeap.m_BitsToSetOnNewHeap = e_SamplersDirty;
     }
 
@@ -575,8 +600,18 @@ void ImmediateContext::RollOverHeap(OnlineDescriptorHeap& Heap) noexcept(false)
     }
 
     Heap.m_DescriptorRingBuffer = CFencedRingBuffer(Heap.m_Desc.NumDescriptors);
+
+#if defined(_MSC_VER) || !defined(_WIN32)
     Heap.m_DescriptorHeapBase = Heap.m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart().ptr;
     Heap.m_DescriptorHeapBaseCPU = Heap.m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart().ptr;
+#else
+    D3D12_GPU_DESCRIPTOR_HANDLE gpuDesc;
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuDesc;
+    Heap.m_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart(&gpuDesc);
+    Heap.m_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart(&cpuDesc);
+    Heap.m_DescriptorHeapBase = gpuDesc.ptr;
+    Heap.m_DescriptorHeapBaseCPU = cpuDesc.ptr;
+#endif
 
     ID3D12DescriptorHeap* pHeaps[2] = {m_ViewHeap.m_pDescriptorHeap.get(), m_SamplerHeap.m_pDescriptorHeap.get()};
     GetGraphicsCommandList()->SetDescriptorHeaps(ComputeOnly() ? 1 : 2, pHeaps);
@@ -1791,7 +1826,13 @@ void TRANSLATION_API ImmediateContext::DiscardView(ViewBase* pView, const D3D12_
 
     // D3D12 requires RenderTargets and DepthStenciles to be transitioned to the corresponding write state before discard.
     auto pAPIResource = GetUnderlyingResource(pView->m_pResource);
+#if defined(_MSC_VER) || !defined(_WIN32)
     D3D12_RESOURCE_FLAGS ResourceFlags = pAPIResource->GetDesc().Flags;
+#else
+    D3D12_RESOURCE_DESC resDesc;
+    pAPIResource->GetDesc(&resDesc);
+    D3D12_RESOURCE_FLAGS ResourceFlags = resDesc.Flags;
+#endif
 
     if ((ResourceFlags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) || (ResourceFlags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL))
     {
@@ -1894,7 +1935,13 @@ void TRANSLATION_API ImmediateContext::DiscardResource(Resource* pResource, cons
     auto pAPIResource = GetUnderlyingResource(pResource);
 
     // D3D12 requires RenderTargets and DepthStenciles to be transitioned to the corresponding write state before discard.
+#if defined(_MSC_VER) || !defined(_WIN32)
     D3D12_RESOURCE_FLAGS ResourceFlags = pAPIResource->GetDesc().Flags;
+#else
+    D3D12_RESOURCE_DESC resDesc;
+    pAPIResource->GetDesc(&resDesc);
+    D3D12_RESOURCE_FLAGS ResourceFlags = resDesc.Flags;
+#endif
     if ((ResourceFlags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) || (ResourceFlags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL))
     {
         D3D12_RESOURCE_STATES RequiredState =

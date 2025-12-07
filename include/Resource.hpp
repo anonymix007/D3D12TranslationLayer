@@ -447,8 +447,7 @@ namespace D3D12TranslationLayer
         static void FillSubresourceDesc(ID3D12Device* pDevice, DXGI_FORMAT, UINT Width, UINT Height, UINT Depth, _Out_ D3D12_PLACED_SUBRESOURCE_FOOTPRINT& Placement) noexcept;
         UINT DepthPitch(UINT Subresource) noexcept;
 
-        template<typename TViewIface> UINT GetUniqueness() const noexcept { return m_AllUniqueness; }
-        template<> UINT GetUniqueness<ShaderResourceViewType>() const noexcept { return m_SRVUniqueness; }
+        template<typename TViewIface> inline UINT GetUniqueness() const noexcept { return m_AllUniqueness; }
 
         template<typename TViewIface> void ViewBound(View<TViewIface>* pView, EShaderStage stage, UINT slot) { m_currentBindings.ViewBound(pView, stage, slot); }
         template<typename TViewIface> void ViewUnbound(View<TViewIface>* pView, EShaderStage stage, UINT slot) { m_currentBindings.ViewUnbound(pView, stage, slot); }
@@ -465,7 +464,13 @@ namespace D3D12TranslationLayer
 
         void AddHeapToTilePool(unique_comptr<ID3D12Heap> spHeap)
         {
+#if defined(_MSC_VER) || !defined(_WIN32)
             auto HeapDesc = spHeap->GetDesc();
+#else
+            D3D12_HEAP_DESC HeapDesc;
+            spHeap->GetDesc(&HeapDesc);
+#endif
+
             m_TilePool.m_Allocations.emplace_back(static_cast<UINT>(HeapDesc.SizeInBytes), 0); // throw( bad_alloc )
             auto& Allocation = m_TilePool.m_Allocations.front();
             Allocation.m_spUnderlyingBufferHeap = std::move(spHeap);
@@ -905,4 +910,6 @@ public:
         HRESULT AddFenceForUnwrapResidency(ID3D12CommandQueue* pQueue);
 
     };
+
+    template<> inline UINT Resource::GetUniqueness<ShaderResourceViewType>() const noexcept { return m_SRVUniqueness; }
 };

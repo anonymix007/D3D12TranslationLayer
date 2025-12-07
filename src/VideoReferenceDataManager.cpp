@@ -72,6 +72,7 @@ namespace D3D12TranslationLayer
             {
                 // Caller specified an invalid reference index.  Remap it to the current
                 // picture index to avoid crashing and still attempt to decode.
+#if 0
                 if (g_hTracelogging)
                 {
                     TraceLoggingWrite(g_hTracelogging,
@@ -79,7 +80,7 @@ namespace D3D12TranslationLayer
                         TraceLoggingValue(index, "Index"),
                         TraceLoggingValue(m_currentOutputIndex, "OutputIndex"));
                 }
-
+#endif
                 remappedIndex = m_currentOutputIndex;
 
                 // The output resource has already been transitioned to the DECODE_WRITE state when
@@ -151,11 +152,13 @@ namespace D3D12TranslationLayer
         if (remappedIndex == m_invalidIndex)
         {
             // No unused entry exists.  Indicates a problem with MaxDPB.
+#if 0
             if (g_hTracelogging)
             {
                 TraceLoggingWrite(g_hTracelogging,
                     "Decode - No available reference map entry for output.");
             }
+#endif
             ThrowFailure(E_INVALIDARG);
         }
 

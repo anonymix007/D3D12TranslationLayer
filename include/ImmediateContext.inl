@@ -166,6 +166,13 @@ inline bool CBoundState<TBindable, NumBindSlots>::DirtyBitsUpTo(_In_range_(0, Nu
     }
     else
     {
+#ifndef _MSC_VER
+        std::bitset<NumBindings> mask;
+        for (size_t i = 0; i < NumBitsToCheck; ++i) {
+            mask.set(i);
+        }
+        return (m_DirtyBits & mask).any();
+#else
         constexpr UINT NumBitsPerWord = sizeof(::std::conditional_t<NumBindings <= sizeof(unsigned long) * CHAR_BIT, unsigned long, unsigned long long>) * 8;
         // First, check whole "words" for any bit being set.
         UINT NumWordsToCheck = NumBitsToCheck / NumBitsPerWord;
@@ -184,6 +191,7 @@ inline bool CBoundState<TBindable, NumBindSlots>::DirtyBitsUpTo(_In_range_(0, Nu
         }
         // Check for bits inside a word.
         return BitSetLessThan(m_DirtyBits._Getword(NumWordsToCheck), NumBitsToCheck);
+#endif
     }
 }
 
@@ -206,7 +214,7 @@ template <typename TBindable, UINT NumBindSlots, typename TBinder>
 inline bool CSimpleBoundState<TBindable, NumBindSlots, TBinder>::UpdateBinding(_In_range_(0, NumBindings-1) UINT slot, _In_opt_ TBindable* pBindable, EShaderStage stage) noexcept
 {
     auto pCurrent = this->m_Bound[slot];
-    if (__super::UpdateBinding(slot, pBindable))
+    if (CBoundState<TBindable, NumBindSlots>::UpdateBinding(slot, pBindable))
     {
         TBinder::Unbound(pCurrent, slot, stage);
         TBinder::Bound(pBindable, slot, stage);
@@ -868,6 +876,27 @@ inline void ImmediateContext::DirtyShaderResourcesHelper(UINT& HeapSlot) noexcep
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------
+template <typename TDesc>
+inline void GetBufferViewDesc(Resource* pBuffer, TDesc& Desc, UINT APIOffset, UINT APISize = -1)
+{
+    if (pBuffer)
+    {
+        Desc.SizeInBytes =
+            min(GetDynamicBufferSize<TDesc>(pBuffer, APIOffset), APISize);
+        Desc.BufferLocation = Desc.SizeInBytes == 0 ? 0 :
+            // TODO: Cache the GPU VA, frequent calls to this cause a CPU hotspot
+            (pBuffer->GetUnderlyingResource()->GetGPUVirtualAddress() // Base of the DX12 resource
+                + pBuffer->GetSubresourcePlacement(0).Offset // Base of the DX11 resource after renaming
+                + APIOffset); // Offset from the base of the DX11 resource
+    }
+    else
+    {
+        Desc.BufferLocation = 0;
+        Desc.SizeInBytes = 0;
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------
 template<EShaderStage eShader>
 inline void ImmediateContext::DirtyConstantBuffersHelper(UINT& HeapSlot) noexcept
 {
@@ -931,27 +960,6 @@ inline void ImmediateContext::DirtySamplersHelper(UINT& HeapSlot) noexcept
         m_SamplerHeap.m_Desc.Type);
 
     HeapSlot += numSamplers;
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------
-template <typename TDesc>
-inline void GetBufferViewDesc(Resource* pBuffer, TDesc& Desc, UINT APIOffset, UINT APISize = -1)
-{
-    if (pBuffer)
-    {
-        Desc.SizeInBytes =
-            min(GetDynamicBufferSize<TDesc>(pBuffer, APIOffset), APISize);
-        Desc.BufferLocation = Desc.SizeInBytes == 0 ? 0 :
-            // TODO: Cache the GPU VA, frequent calls to this cause a CPU hotspot
-            (pBuffer->GetUnderlyingResource()->GetGPUVirtualAddress() // Base of the DX12 resource
-                + pBuffer->GetSubresourcePlacement(0).Offset // Base of the DX11 resource after renaming
-                + APIOffset); // Offset from the base of the DX11 resource
-    }
-    else
-    {
-        Desc.BufferLocation = 0;
-        Desc.SizeInBytes = 0;
-    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------

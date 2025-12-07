@@ -73,7 +73,7 @@ private:
         const DXGI_FORMAT*          pDefaultFormatCastSet;  // This is dependent on FL/driver version, but is here to save a lot of space
         UINT8                       BitsPerComponent[4]; // only used for D3D11FTL_PARTIAL_TYPE or FULL_TYPE
         UINT8                       BitsPerUnit;             // BitsPerUnit is bits per pixel for non-compressed formats and bits per block for compressed formats
-        BOOL                        SRGBFormat : 1;
+        UINT                        SRGBFormat : 1;
         UINT                        WidthAlignment : 4;      // number of texels to align to in a mip level.
         UINT                        HeightAlignment : 4;     // Top level dimensions must be a multiple of these
         UINT                        DepthAlignment : 1;      // values.

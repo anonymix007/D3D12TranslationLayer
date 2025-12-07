@@ -111,6 +111,7 @@ namespace D3D12TranslationLayer
         HRESULT hr = (m_pParent->m_pDevice12.get()->*PSOTraits::GetCreate())(&PSOTraits::GetDesc(*this), IID_PPV_ARGS(GetForCreate()));
         if (FAILED(hr))
         {
+#if 0
             MICROSOFT_TELEMETRY_ASSERT(hr != E_INVALIDARG);
             if (g_hTracelogging)
             {
@@ -122,6 +123,7 @@ namespace D3D12TranslationLayer
                                   TraceLoggingKeyword(MICROSOFT_KEYWORD_MEASURES),
                                   TraceLoggingLevel(TRACE_LEVEL_ERROR));
             }
+#endif
         }
         ThrowFailure(hr); // throw( _com_error )
 

@@ -12,4 +12,6 @@ add_library(dxbcparser STATIC
 
 target_include_directories(dxbcparser
     PUBLIC include
+    PUBLIC ../../include/winddk
+    PUBLIC ../../include/atl
     PUBLIC ../external)

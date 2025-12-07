@@ -10,6 +10,39 @@
 #include <pix3.h>
 #endif
 
+#ifndef  __in_range
+#define __in_range(...)
+#endif
+
+#ifndef __in_ecount_opt
+#define __in_ecount_opt(...)
+#endif
+
+#ifndef __field_ecount_part
+#define __field_ecount_part(...)
+#endif
+
+#ifndef __if_exists
+#define __if_exists(...) if constexpr (requires { __VA_ARGS__; })
+#endif
+
+#ifndef __analysis_assume
+#define __analysis_assume(...)
+#endif
+
+#ifndef __assume
+#define __assume(...) __builtin_expect(__VA_ARGS__, 1)
+#endif
+
+#ifndef __in
+#define __in
+#endif
+
+#ifndef __nullterminated
+#define __nullterminated
+#endif
+
+
 //Library Headers
 #define TRANSLATION_API
 #include "VideoViewHelper.hpp"
@@ -66,6 +99,8 @@
 
 namespace D3D12TranslationLayer
 {
+#if 0
 extern TraceLoggingHProvider g_hTracelogging;
 void SetTraceloggingProvider(TraceLoggingHProvider hTracelogging);
+#endif
 }

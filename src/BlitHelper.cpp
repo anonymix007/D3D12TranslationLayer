@@ -25,8 +25,14 @@ namespace D3D12TranslationLayer
 
     auto BlitHelper::PrepareShaders(Resource *pSrc, UINT srcPlanes, Resource *pDst, UINT dstPlanes, bool bEnableAlpha, bool bSwapRB, int& outSrcPixelScalingFactor) -> BlitPipelineState*
     {
+#if defined(_MSC_VER) || !defined(_WIN32)
         const D3D12_RESOURCE_DESC &srcDesc = pSrc->GetUnderlyingResource()->GetDesc();
         const D3D12_RESOURCE_DESC &dstDesc = pDst->GetUnderlyingResource()->GetDesc();
+#else
+        D3D12_RESOURCE_DESC srcDesc, dstDesc;
+        pSrc->GetUnderlyingResource()->GetDesc(&srcDesc);
+        pDst->GetUnderlyingResource()->GetDesc(&dstDesc);
+#endif
 
         if (CD3D11FormatHelper::YUV(dstDesc.Format))
         {
@@ -161,7 +167,13 @@ namespace D3D12TranslationLayer
 
     void BlitHelper::Blit(Resource *pSrc, UINT *pSrcSubresourceIndices, UINT numSrcSubresources, const RECT& srcRect, Resource *pDst, UINT *pDstSubresourceIndices, UINT numDstSubresources, const RECT& dstRect, bool bEnableAlpha, bool bSwapRBChannels)
     {
+#if defined(_MSC_VER) || !defined(_WIN32)
         const D3D12_RESOURCE_DESC &dstDesc = pDst->GetUnderlyingResource()->GetDesc();
+#else
+        D3D12_RESOURCE_DESC dstDesc;
+        pDst->GetUnderlyingResource()->GetDesc(&dstDesc);
+#endif
+
         assert( numSrcSubresources <= MAX_PLANES );
         UINT nonMsaaSrcSubresourceIndices[MAX_PLANES];
         memcpy( &nonMsaaSrcSubresourceIndices[0], pSrcSubresourceIndices, numSrcSubresources * sizeof(UINT) );
@@ -418,7 +430,12 @@ namespace D3D12TranslationLayer
         auto pResource = *ppResource;
         assert( numSubresources == 1 ); // assert that it's only 1 because you can't have MSAA YUV resources.
 
+#if defined(_MSC_VER) || !defined(_WIN32)
         auto srcDesc = pResource->GetUnderlyingResource()->GetDesc();
+#else
+        D3D12_RESOURCE_DESC srcDesc;
+        pResource->GetUnderlyingResource()->GetDesc(&srcDesc);
+#endif
         UINT width = static_cast<UINT>(srcDesc.Width);
         UINT height = static_cast<UINT>(srcDesc.Height);
         auto& cacheEntry = m_pParent->GetResourceCache().GetResource( pResource->AppDesc()->Format(), width, height );

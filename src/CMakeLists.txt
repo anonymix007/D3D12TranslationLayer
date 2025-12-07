@@ -91,34 +91,36 @@ target_include_directories(d3d12translationlayer
     PUBLIC ../include
     PRIVATE ./)
 
-if (CMAKE_VERSION VERSION_GREATER 3.16)
-	target_precompile_headers(d3d12translationlayer PRIVATE ../include/pch.h)
-endif()
+#if (CMAKE_VERSION VERSION_GREATER 3.16)
+#	target_precompile_headers(d3d12translationlayer PRIVATE ../include/pch.h)
+#endif()
     
 source_group(Inlines FILES ${INL})
 source_group("Header Files\\External" FILES ${EXTERNAL_INC})
 
-target_link_libraries(d3d12translationlayer Microsoft::DirectX-Headers d3d12 dxgi atls)
+target_link_libraries(d3d12translationlayer Microsoft::DirectX-Headers d3d12 dxgi)
 
 # Using a compile test instead of find_library so this doesn't have to be run from a VS command prompt
-check_cxx_source_compiles("
-#pragma comment(lib, \"dxcore.lib\")
-#include <dxcore.h>
-int main() {
-	IDXCoreAdapterFactory *fac;
-	return DXCoreCreateAdapterFactory(&fac);
-}" HAVE_DXCORE_LIBRARY)
-if (HAVE_DXCORE_LIBRARY)
-	target_link_libraries(d3d12translationlayer dxcore)
-	target_link_options(d3d12translationlayer INTERFACE "/DELAYLOAD:dxcore.dll")
-else()
+# check_cxx_source_compiles("
+# #pragma comment(lib, \"dxcore.lib\")
+# #include <dxcore.h>
+# int main() {
+# 	IDXCoreAdapterFactory *fac;
+# 	return DXCoreCreateAdapterFactory(&fac);
+# }" HAVE_DXCORE_LIBRARY)
+# if (HAVE_DXCORE_LIBRARY)
+# 	target_link_libraries(d3d12translationlayer dxcore)
+# 	target_link_options(d3d12translationlayer INTERFACE "/DELAYLOAD:dxcore.dll")
+# else()
 	target_compile_definitions(d3d12translationlayer PRIVATE DYNAMIC_LOAD_DXCORE=1)
-endif()
+#endif()
 
+if (USE_PIX)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../packages.config ${CMAKE_CURRENT_BINARY_DIR}/packages.config COPYONLY)
 add_library(WinPixEventRuntime INTERFACE IMPORTED GLOBAL)
 set_target_properties(WinPixEventRuntime PROPERTIES INTERFACE_LINK_LIBRARIES "${CMAKE_BINARY_DIR}/packages/WinPixEventRuntime.1.0.190604001/build/WinPixEventRuntime.targets")
 target_link_libraries(d3d12translationlayer WinPixEventRuntime)
+endif()
 
 target_compile_definitions(d3d12translationlayer PRIVATE $<$<CONFIG:DEBUG>:DBG>)
 target_compile_definitions(d3d12translationlayer PUBLIC $<$<CONFIG:DEBUG>:TRANSLATION_LAYER_DBG=1>)
@@ -129,19 +131,25 @@ endif()
 
 if(MSVC)
   if("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
-  target_compile_options(d3d12translationlayer PUBLIC /W4 /WX /wd4238 /wd4324)
+  target_compile_options(d3d12translationlayer PUBLIC /W1)
   else()
-  target_compile_options(d3d12translationlayer PUBLIC /W4 /wd4238 /wd4324 -Werror -Wno-missing-braces -Wno-shift-overflow -Wno-delete-non-abstract-non-virtual-dtor -Wno-unused-lambda-capture -Wno-implicit-exception-spec-mismatch -Wno-unused-const-variable  -Wno-unused-variable -Wno-unused-parameter  -Wno-enum-compare -Wno-reorder-ctor -Wno-sign-compare -Wno-pessimizing-move -Wno-c++11-narrowing -Wno-address-of-temporary -Wno-switch -Wno-missing-field-initializers)
+  target_compile_options(d3d12translationlayer PUBLIC /W4 /wd4238 /wd4324 -Werror -Wno-missing-braces -Wno-shift-overflow -Wno-delete-non-abstract-non-virtual-dtor -Wno-unused-lambda-capture -Wno-implicit-exception-spec-mismatch -Wno-unused-const-variable  -Wno-unused-variable -Wno-unused-parameter  -Wno-enum-compare -Wno-reorder-ctor -Wno-sign-compare -Wno-pessimizing-move -Wno-c++11-narrowing -Wno-address-of-temporary -Wno-switch -Wno-missing-field-initializers -Wno-unused-but-set-variable -Wno-defaulted-function-deleted -Wno-nonportable-include-path -Wno-deprecated-copy-with-user-provided-copy)
   endif()
   target_link_options(d3d12translationlayer INTERFACE "/ignore:4286")
 else()
-  target_compile_options(d3d12translationlayer PUBLIC -Wall -Wextra -pedantic -Werror)
+  if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+  target_compile_options(d3d12translationlayer PUBLIC -fpermissive -Wno-error -Wno-switch -Wno-nonportable-include-path -Wno-c++11-narrowing -Wno-unused-command-line-argument -Wno-deprecated-enum-compare -Wno-defaulted-function-deleted)
+  else()
+  target_compile_options(d3d12translationlayer PUBLIC -fpermissive -Wno-error -Wno-switch -Wno-defaulted-function-deleted)
+  endif()
 endif()
 
 if (NOT IMPLEMENT_RECTS)
     target_compile_definitions(d3d12translationlayer PRIVATE NO_IMPLEMENT_RECT_FNS)
 endif()
 
+
+set (CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../../include/winddk)
 include(CheckIncludeFileCXX)
 CHECK_INCLUDE_FILE_CXX(d3d12TokenizedProgramFormat.hpp HAS_WDK)
 

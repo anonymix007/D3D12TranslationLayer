@@ -106,6 +106,7 @@ namespace D3D12TranslationLayer
             case VIDEO_DECODE_PROFILE_TYPE_VP8:
                 return sizeof(DXVA_Status_VPx);
 
+#if 0
             case VIDEO_DECODE_PROFILE_TYPE_HEVC:
                 return sizeof(DXVA_Status_HEVC);
 
@@ -114,6 +115,7 @@ namespace D3D12TranslationLayer
 
             case VIDEO_DECODE_PROFILE_TYPE_MPEG4PT2:
                 return sizeof(DXVA_Status_VC1);         // TODO: Srinath to confirm if MPEG4PT2 spec is really right mentioning to use this one
+#endif
 
             case VIDEO_DECODE_PROFILE_TYPE_MPEG2:       // TODO: no info on what to use for this one.
                 return 0;
@@ -184,7 +186,7 @@ namespace D3D12TranslationLayer
                         pStatus->field_pic_flag = statisticsInfo.field_pic_flag;
                         pStatus->bStatus = VideoDecodeStatusMap[pD3d12VideoStats->Status];
                         pStatus->wNumMbsAffected = (USHORT)pD3d12VideoStats->NumMacroblocksAffected;
-
+#if 0
                         if (g_hTracelogging)
                         {
                             TraceLoggingWrite(g_hTracelogging,
@@ -192,8 +194,10 @@ namespace D3D12TranslationLayer
                                 TraceLoggingPointer(pVideoDecoder, "pID3D12Decoder"),
                                 TraceLoggingValue(pStatus->StatusReportFeedbackNumber, "statusReportFeedbackNumber"));
                         }
+#endif
                     } break;
 
+#if 0
                     case VIDEO_DECODE_PROFILE_TYPE_HEVC:
                     {
                         assert(codecStructSize == sizeof(DXVA_Status_HEVC));
@@ -214,6 +218,7 @@ namespace D3D12TranslationLayer
                                 TraceLoggingValue(pStatus->StatusReportFeedbackNumber, "statusReportFeedbackNumber"));
                         }
                     } break;
+#endif
 
                     case VIDEO_DECODE_PROFILE_TYPE_VP9:
                     case VIDEO_DECODE_PROFILE_TYPE_VP8:
@@ -227,7 +232,7 @@ namespace D3D12TranslationLayer
                         pStatus->CurrPic.bPicEntry = statisticsInfo.CurrPic.bPicEntry;
                         pStatus->bStatus = VideoDecodeStatusMap[pD3d12VideoStats->Status];
                         pStatus->wNumMbsAffected = (USHORT)pD3d12VideoStats->NumMacroblocksAffected;
-
+#if 0
                         if (g_hTracelogging)
                         {
                             TraceLoggingWrite(g_hTracelogging,
@@ -235,8 +240,10 @@ namespace D3D12TranslationLayer
                                 TraceLoggingPointer(pVideoDecoder, "pID3D12Decoder"),
                                 TraceLoggingValue(pStatus->StatusReportFeedbackNumber, "statusReportFeedbackNumber"));
                         }
+#endif
                     } break;
 
+#if 0
                     case VIDEO_DECODE_PROFILE_TYPE_VC1:
                     case VIDEO_DECODE_PROFILE_TYPE_MPEG4PT2:
                     {
@@ -255,7 +262,9 @@ namespace D3D12TranslationLayer
                                 TraceLoggingPointer(pVideoDecoder, "pID3D12Decoder"),
                                 TraceLoggingValue(pStatus->StatusReportFeedbackNumber, "statusReportFeedbackNumber"));
                         }
+
                     } break;
+#endif
 
                     case VIDEO_DECODE_PROFILE_TYPE_MPEG2:           // TODO: can't find info about this one, Srinath is checking.
                     {

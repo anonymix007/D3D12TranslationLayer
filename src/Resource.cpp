@@ -384,7 +384,12 @@ namespace D3D12TranslationLayer
 
             m_Identity->m_pResidencyHandle = std::unique_ptr<ResidencyManagedObjectWrapper>(new ResidencyManagedObjectWrapper(residencyManager));
             D3D12_RESOURCE_DESC resourceDesc12 = m_creationArgs.m_desc12;
+#if defined(_MSC_VER) || !defined(_WIN32)
             D3D12_RESOURCE_ALLOCATION_INFO allocInfo = m_pParent->m_pDevice12->GetResourceAllocationInfo(m_pParent->GetNodeMask(), 1, &resourceDesc12);
+#else
+            D3D12_RESOURCE_ALLOCATION_INFO allocInfo;
+            m_pParent->m_pDevice12->GetResourceAllocationInfo(&allocInfo, m_pParent->GetNodeMask(), 1, &resourceDesc12);
+#endif
 
             m_Identity->m_pResidencyHandle->Initialize(m_Identity->GetResource(), allocInfo.SizeInBytes, bIsResident);
         }
@@ -404,7 +409,7 @@ namespace D3D12TranslationLayer
         STDMETHOD(QueryInterface)(REFIID riid, void** ppv)
         {
             if (InlineIsEqualGUID(riid, __uuidof(ID3D12SwapChainAssistant)) ||
-                InlineIsEqualUnknown(riid))
+                InlineIsEqualGUID(riid, __uuidof(IUnknown)))
             {
                 AddRef();
                 *ppv = this;
@@ -412,7 +417,11 @@ namespace D3D12TranslationLayer
             }
             return E_NOINTERFACE;
         }
+#if defined(_MSC_VER) || !defined(_WIN32)
         STDMETHOD_(LUID, GetLUID)() { return m_LUID; }
+#else
+        STDMETHOD_(LUID*, GetLUID)(LUID *RetVal) { *RetVal = m_LUID; return RetVal; }
+#endif
         STDMETHOD(GetSwapChainObject)(REFIID, void**) { return E_NOTIMPL; }
         STDMETHOD(GetCurrentResourceAndCommandQueue)(REFIID, void**, REFIID, void**) { return E_NOTIMPL; }
         STDMETHOD(InsertImplicitSync)() { return E_NOTIMPL; }

@@ -152,7 +152,11 @@ namespace D3D12TranslationLayer
         UINT CPUAccessFlags = 0;
         if (HeapProps.Type != D3D12_HEAP_TYPE_CUSTOM)
         {
+#if defined(_MSC_VER) || !defined(_WIN32)
             HeapProps = pDevice->GetCustomHeapProperties(HeapProps.CreationNodeMask, HeapProps.Type);
+#else
+            pDevice->GetCustomHeapProperties(&HeapProps, HeapProps.CreationNodeMask, HeapProps.Type);
+#endif
         }
         switch (HeapProps.CPUPageProperty)
         {
@@ -184,8 +188,11 @@ namespace D3D12TranslationLayer
                 // TODO: Debug spew
                 ThrowFailure(E_INVALIDARG);
             }
-
+#if defined(_MSC_VER) || !defined(_WIN32)
             pResourceInfo->TiledPool.m_HeapDesc = spHeap->GetDesc();
+#else
+            spHeap->GetDesc(&pResourceInfo->TiledPool.m_HeapDesc);
+#endif
             pResourceInfo->m_Type = TiledPoolType;
 
             bShared = (pResourceInfo->TiledPool.m_HeapDesc.Flags & D3D12_HEAP_FLAG_SHARED) != 0;
@@ -239,7 +246,12 @@ namespace D3D12TranslationLayer
 
         if (spResource)
         {
+#if defined(_MSC_VER) || !defined(_WIN32)
             D3D12_RESOURCE_DESC Desc = spResource->GetDesc();
+#else
+            D3D12_RESOURCE_DESC Desc;
+            spResource->GetDesc(&Desc);
+#endif
             D3D11_RESOURCE_FLAGS Flags = { };
             D3D12_HEAP_FLAGS HeapFlags = D3D12_HEAP_FLAG_NONE;
             D3D12_HEAP_PROPERTIES HeapProps = { };

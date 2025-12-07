@@ -117,6 +117,7 @@ namespace D3D12TranslationLayer
             // If the GPU is idle, submit work to keep it busy
             if (m_Fence.GetCompletedValue() == m_commandListID - 1)
             {
+#if 0
                 if (g_hTracelogging)
                 {
                     TraceLoggingWrite(g_hTracelogging,
@@ -126,6 +127,7 @@ namespace D3D12TranslationLayer
                                       TraceLoggingUInt32(m_NumDispatches, "NumDispatches"),
                                       TraceLoggingUInt64(m_UploadHeapSpaceAllocated, "UploadHeapSpaceAllocated"));
                 }
+#endif
                 SubmitCommandListImpl();
             }
         }

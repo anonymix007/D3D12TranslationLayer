@@ -226,7 +226,7 @@ bool CBucketizedBlockAllocator<_OuterAllocator, _SizeToBucketFunc, _BlockType, _
 {
     _SizeToBucketFunc SizeToBucketFunc;
     SIZE_T bucket = SizeToBucketFunc(block.GetSize());
-    return bucket < this->m_numBuckets ? m_pAllocators[bucket].IsOwner(block) : false;
+    return bucket < m_numAllocators ? m_pAllocators[bucket].IsOwner(block) : false;
 }
 
 template<class _OuterAllocator, class _SizeToBucketFunc, class _BlockType, class _SizeType>

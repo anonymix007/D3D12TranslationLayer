@@ -66,6 +66,7 @@ namespace D3D12TranslationLayer
         },
         { 1, 2, 1280, 720 },
     };
+#if 0
     ProfileBufferInfo H264MVCBufferInfo =
     {
         4,
@@ -77,6 +78,7 @@ namespace D3D12TranslationLayer
         },
         { 1, 2, 1280, 720 },
     };
+#endif
     ProfileBufferInfo HEVCBufferInfo =
     {
         4,
@@ -111,6 +113,7 @@ namespace D3D12TranslationLayer
         },
         { 1, 1, 0, 0 },
     };
+#if 0
     ProfileBufferInfo MPEG4PT2BufferInfo =
     {
         4,
@@ -122,7 +125,7 @@ namespace D3D12TranslationLayer
         },
         { 1, 1, 0, 0 },
     };
-
+#endif
     // Profile Info
     // Each DecodeProfile must be unique
     // Each unique combination of DecodeProfileType and DecodeProfileBitDepth must map to exactly one DecodeProfile.
@@ -139,11 +142,15 @@ namespace D3D12TranslationLayer
         {   D3D12_VIDEO_DECODE_PROFILE_H264,                        VIDEO_DECODE_PROFILE_TYPE_H264,     VIDEO_DECODE_PROFILE_BIT_DEPTH_8_BIT,       H264BufferInfo },
         {   D3D12_VIDEO_DECODE_PROFILE_H264_STEREO_PROGRESSIVE,     VIDEO_DECODE_PROFILE_TYPE_H264,     VIDEO_DECODE_PROFILE_BIT_DEPTH_8_BIT,       H264BufferInfo },
         {   D3D12_VIDEO_DECODE_PROFILE_H264_STEREO,                 VIDEO_DECODE_PROFILE_TYPE_H264,     VIDEO_DECODE_PROFILE_BIT_DEPTH_8_BIT,       H264BufferInfo },
+#if 0
         {   D3D12_VIDEO_DECODE_PROFILE_H264_MULTIVIEW,              VIDEO_DECODE_PROFILE_TYPE_H264_MVC, VIDEO_DECODE_PROFILE_BIT_DEPTH_8_BIT,       H264MVCBufferInfo },
+#endif
         {   D3D12_VIDEO_DECODE_PROFILE_VC1,                         VIDEO_DECODE_PROFILE_TYPE_VC1,      VIDEO_DECODE_PROFILE_BIT_DEPTH_8_BIT,       VC1BufferInfo },
         {   D3D12_VIDEO_DECODE_PROFILE_VC1_D2010,                   VIDEO_DECODE_PROFILE_TYPE_VC1,      VIDEO_DECODE_PROFILE_BIT_DEPTH_8_BIT,       VC1BufferInfo },
+#if 0
         {   D3D12_VIDEO_DECODE_PROFILE_MPEG4PT2_SIMPLE,             VIDEO_DECODE_PROFILE_TYPE_MPEG4PT2, VIDEO_DECODE_PROFILE_BIT_DEPTH_8_BIT,       MPEG4PT2BufferInfo },
         {   D3D12_VIDEO_DECODE_PROFILE_MPEG4PT2_ADVSIMPLE_NOGMC,    VIDEO_DECODE_PROFILE_TYPE_MPEG4PT2, VIDEO_DECODE_PROFILE_BIT_DEPTH_8_BIT,       MPEG4PT2BufferInfo },
+#endif
         {   D3D12_VIDEO_DECODE_PROFILE_HEVC_MAIN,                   VIDEO_DECODE_PROFILE_TYPE_HEVC,     VIDEO_DECODE_PROFILE_BIT_DEPTH_8_BIT,       HEVCBufferInfo },
         {   D3D12_VIDEO_DECODE_PROFILE_HEVC_MAIN10,                 VIDEO_DECODE_PROFILE_TYPE_HEVC,     VIDEO_DECODE_PROFILE_BIT_DEPTH_10_BIT,      HEVCBufferInfo },
         {   D3D12_VIDEO_DECODE_PROFILE_VP9,                         VIDEO_DECODE_PROFILE_TYPE_VP9,      VIDEO_DECODE_PROFILE_BIT_DEPTH_8_BIT,       VP9BufferInfo },
@@ -253,8 +260,13 @@ namespace D3D12TranslationLayer
         {
             ThrowFailure(E_INVALIDARG);
         }
-
+#if defined(_MSC_VER) || !defined(_WIN32)
         D3D12_RESOURCE_DESC outputResourceDesc = pTextureArray->GetDesc();
+#else
+        D3D12_RESOURCE_DESC outputResourceDesc;
+        pTextureArray->GetDesc(&outputResourceDesc);
+#endif
+
         VIDEO_DECODE_PROFILE_BIT_DEPTH resourceBitDepth = GetFormatBitDepth(outputResourceDesc.Format);
 
         if (m_decodeFormat != outputResourceDesc.Format)
@@ -370,6 +382,7 @@ namespace D3D12TranslationLayer
     //----------------------------------------------------------------------------------------------------------------------------------
     void VideoDecode::LogPicParams() const
     {
+#if 0
         if (   g_hTracelogging
             && TraceLoggingProviderEnabled(g_hTracelogging, 0, 0))
         {    
@@ -446,7 +459,7 @@ namespace D3D12TranslationLayer
             }
             break;
 
-            
+#if 0
             case VIDEO_DECODE_PROFILE_TYPE_H264_MVC:
             {
                 // From H264 DXVA spec:
@@ -460,6 +473,7 @@ namespace D3D12TranslationLayer
                 CurrPic = LogCopyPicEntry(pPicParams->CurrPic);
             }
             break;
+#endif
     
             case VIDEO_DECODE_PROFILE_TYPE_VC1:
             case VIDEO_DECODE_PROFILE_TYPE_MPEG2:
@@ -474,6 +488,7 @@ namespace D3D12TranslationLayer
             }
             break;
     
+#if 0
             case VIDEO_DECODE_PROFILE_TYPE_MPEG4PT2:
             {
                 auto pPicParams = GetPicParams<DXVA_PicParams_MPEG4_PART2>();
@@ -485,6 +500,7 @@ namespace D3D12TranslationLayer
                 CurrPic.Index7Bits = static_cast<BYTE>(pPicParams->wDecodedPictureIndex);
             }
             break;
+#endif
     
             default:
                 ThrowFailure(E_NOTIMPL);
@@ -505,6 +521,7 @@ namespace D3D12TranslationLayer
                     TraceLoggingPackedMetadata(TlgInUINT8, "AssociatedFlag"),
                     TraceLoggingPackedMetadata(TlgInUINT8, "bPicEntry"));
         }
+#endif
     }
     
     //----------------------------------------------------------------------------------------------------------------------------------
@@ -585,6 +602,7 @@ namespace D3D12TranslationLayer
         }
         break;
 
+#if 0
         case VIDEO_DECODE_PROFILE_TYPE_MPEG4PT2:
         {
             // References residency policy: Mark all references as unused and only mark again as used the ones used by this frame
@@ -595,6 +613,7 @@ namespace D3D12TranslationLayer
             m_referenceDataManager.MarkReferenceInUse(pPicParams->wBackwardRefPictureIndex);
         }
         break;
+#endif
 
         default:
             ThrowFailure(E_NOTIMPL);
@@ -716,6 +735,7 @@ namespace D3D12TranslationLayer
         }
         break;
 
+#if 0
         case VIDEO_DECODE_PROFILE_TYPE_MPEG4PT2:
         {
             auto pPicParams = GetPicParams<DXVA_PicParams_MPEG4_PART2>();
@@ -728,6 +748,7 @@ namespace D3D12TranslationLayer
             pPicParams->wBackwardRefPictureIndex = m_referenceDataManager.UpdateEntry(pPicParams->wBackwardRefPictureIndex);
         }
         break;
+#endif
 
         default:
             ThrowFailure(E_NOTIMPL);
@@ -779,12 +800,21 @@ namespace D3D12TranslationLayer
             d3d12OutputArguments.ConversionArguments.Enable = TRUE;
 
             m_referenceDataManager.TransitionReferenceOnlyOutput(d3d12OutputArguments.ConversionArguments.pReferenceTexture2D, d3d12OutputArguments.ConversionArguments.ReferenceSubresource);
-
+#if defined(_MSC_VER) || !defined(_WIN32)
             const D3D12_RESOURCE_DESC &descReference = d3d12OutputArguments.ConversionArguments.pReferenceTexture2D->GetDesc();
             d3d12OutputArguments.ConversionArguments.DecodeColorSpace = CDXGIColorSpaceHelper::ConvertFromLegacyColorSpace(!CD3D11FormatHelper::YUV(descReference.Format), CD3D11FormatHelper::GetBitsPerUnit(descReference.Format), /* StudioRGB= */ false, /* P709= */ true, /* StudioYUV= */ true);
 
             const D3D12_RESOURCE_DESC &descOutput = d3d12OutputArguments.pOutputTexture2D->GetDesc();
             d3d12OutputArguments.ConversionArguments.OutputColorSpace = CDXGIColorSpaceHelper::ConvertFromLegacyColorSpace(!CD3D11FormatHelper::YUV(descOutput.Format), CD3D11FormatHelper::GetBitsPerUnit(descOutput.Format), /* StudioRGB= */ false, /* P709= */ true, /* StudioYUV= */ true);
+#else
+            D3D12_RESOURCE_DESC descReference;
+            d3d12OutputArguments.ConversionArguments.pReferenceTexture2D->GetDesc(&descReference);
+            d3d12OutputArguments.ConversionArguments.DecodeColorSpace = CDXGIColorSpaceHelper::ConvertFromLegacyColorSpace(!CD3D11FormatHelper::YUV(descReference.Format), CD3D11FormatHelper::GetBitsPerUnit(descReference.Format), /* StudioRGB= */ false, /* P709= */ true, /* StudioYUV= */ true);
+
+            D3D12_RESOURCE_DESC descOutput;
+            d3d12OutputArguments.pOutputTexture2D->GetDesc(&descOutput);
+            d3d12OutputArguments.ConversionArguments.OutputColorSpace = CDXGIColorSpaceHelper::ConvertFromLegacyColorSpace(!CD3D11FormatHelper::YUV(descOutput.Format), CD3D11FormatHelper::GetBitsPerUnit(descOutput.Format), /* StudioRGB= */ false, /* P709= */ true, /* StudioYUV= */ true);
+#endif
 
             const D3D12_VIDEO_DECODER_HEAP_DESC& HeapDesc = m_spCurrentDecoderHeap->GetDesc();
             d3d12OutputArguments.ConversionArguments.OutputWidth = HeapDesc.DecodeWidth;
@@ -828,7 +858,7 @@ namespace D3D12TranslationLayer
         UCHAR field_pic_flag;
         GetStatusReportFeedbackNumber(/*_Out_*/statusReportFeedbackNumber, /*_Out_*/CurrPic, /*_Out_*/field_pic_flag);  // throw( _com_error )
         m_decodingStatus.EndQuery(statusReportFeedbackNumber, CurrPic, field_pic_flag);  // throw( _com_error )
-
+#if 0
         if (g_hTracelogging)
         {
             TraceLoggingWrite(g_hTracelogging,
@@ -836,7 +866,7 @@ namespace D3D12TranslationLayer
                 TraceLoggingPointer(m_spVideoDecoder->GetForImmediateUse(), "pID3D12Decoder"),
                 TraceLoggingValue(statusReportFeedbackNumber, "statusReportFeedbackNumber"));
         }
-
+#endif
         m_pParent->SubmitCommandList(COMMAND_LIST_TYPE::VIDEO_DECODE);  // throws
     }
 
@@ -958,6 +988,7 @@ namespace D3D12TranslationLayer
         }
         break;
 
+#if 0
         case VIDEO_DECODE_PROFILE_TYPE_MPEG4PT2:
         {
             auto pPicParams = GetPicParams<DXVA_PicParams_MPEG4_PART2>();
@@ -966,6 +997,7 @@ namespace D3D12TranslationLayer
             *pMaxDPB = 2 + 1;
         }
         break;
+#endif
 
         case VIDEO_DECODE_PROFILE_TYPE_H264:
         {
@@ -983,6 +1015,7 @@ namespace D3D12TranslationLayer
         }
         break;
 
+#if 0
         case VIDEO_DECODE_PROFILE_TYPE_H264_MVC:
         {
             auto pPicParams = GetPicParams<DXVA_PicParams_H264_MVC>();
@@ -998,6 +1031,7 @@ namespace D3D12TranslationLayer
             *pMaxDPB = pPicParams->num_ref_frames + 1;
         }
         break;
+#endif
 
         case VIDEO_DECODE_PROFILE_TYPE_HEVC:
         {
@@ -1058,6 +1092,7 @@ namespace D3D12TranslationLayer
                 subresourceIndex);
         } break;
 
+#if 0
         case VIDEO_DECODE_PROFILE_TYPE_MPEG4PT2:
         {
             auto pPicParams = GetPicParams<DXVA_PicParams_MPEG4_PART2>();
@@ -1067,6 +1102,7 @@ namespace D3D12TranslationLayer
                 pTexture2D, 
                 subresourceIndex);
         } break;
+#endif
 
         case VIDEO_DECODE_PROFILE_TYPE_H264:
         {
@@ -1078,6 +1114,7 @@ namespace D3D12TranslationLayer
                 subresourceIndex);
         } break;
 
+#if 0
         case VIDEO_DECODE_PROFILE_TYPE_H264_MVC:
         {
             auto pPicParams = GetPicParams<DXVA_PicParams_H264_MVC>();
@@ -1087,6 +1124,7 @@ namespace D3D12TranslationLayer
                 pTexture2D, 
                 subresourceIndex);
         } break;
+#endif
 
         case VIDEO_DECODE_PROFILE_TYPE_HEVC:
         {
@@ -1166,22 +1204,26 @@ namespace D3D12TranslationLayer
                     CurrPic.Index7Bits = static_cast<BYTE>(pPicParams->wDecodedPictureIndex);
                 } break;
 
+#if 0
             case VIDEO_DECODE_PROFILE_TYPE_MPEG4PT2:
                 {
                     DXVA_PicParams_MPEG4_PART2 *pPicParams = (DXVA_PicParams_MPEG4_PART2 *)pParams;
                     statusReportFeedbackNumber = pPicParams->StatusReportFeedbackNumber;
                     CurrPic.Index7Bits = static_cast<BYTE>(pPicParams->wDecodedPictureIndex);
                 } break;
+#endif
 
             case VIDEO_DECODE_PROFILE_TYPE_H264:
                 CopyNewStylePicParams<DXVA_PicParams_H264>(statusReportFeedbackNumber, CurrPic, pParams);
                 field_pic_flag = static_cast<DXVA_PicParams_H264 *>(pParams)->field_pic_flag;
                 break;
 
+#if 0
             case VIDEO_DECODE_PROFILE_TYPE_H264_MVC:
                 CopyNewStylePicParams<DXVA_PicParams_H264_MVC>(statusReportFeedbackNumber, CurrPic, pParams);
                 field_pic_flag = static_cast<DXVA_PicParams_H264_MVC *>(pParams)->field_pic_flag;
                 break;
+#endif
 
             case VIDEO_DECODE_PROFILE_TYPE_HEVC:
                 CopyNewStylePicParams<DXVA_PicParams_HEVC>(statusReportFeedbackNumber, CurrPic, pParams);

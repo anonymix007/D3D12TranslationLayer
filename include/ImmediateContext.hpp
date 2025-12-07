@@ -143,7 +143,7 @@ public:
     {
     }
     CBoundedFencePool(CBoundedFencePool&& other) noexcept
-        : CFencePool(other),
+        : CFencePool<TResourceType>(other),
         m_MaxInFlightDepth(other.m_MaxInFlightDepth)
     {
     }
@@ -509,7 +509,12 @@ private: // Methods
     {
         SHeapEntry NewEntry;
         ThrowFailure( m_pDevice->CreateDescriptorHeap(&m_Desc, IID_PPV_ARGS(&NewEntry.m_Heap)) ); // throw( _com_error )
+#if defined(_MSC_VER) || !defined(_WIN32)
         HeapOffset HeapBase = NewEntry.m_Heap->GetCPUDescriptorHandleForHeapStart();
+#else
+        HeapOffset HeapBase;
+        NewEntry.m_Heap->GetCPUDescriptorHandleForHeapStart(&HeapBase);
+#endif
         NewEntry.m_FreeList.push_back({HeapBase.ptr,
                                         HeapBase.ptr + m_Desc.NumDescriptors * m_DescriptorSize}); // throw( bad_alloc )
 
@@ -1468,7 +1473,13 @@ public: // Methods
         }
         else
         {
+#if defined(_MSC_VER) || !defined(_WIN32)
             return m_pDevice12->GetCustomHeapProperties(GetNodeMask(), Type);
+#else
+            D3D12_HEAP_PROPERTIES heapProps;
+            m_pDevice12->GetCustomHeapProperties(&heapProps, GetNodeMask(), Type);
+            return heapProps;
+#endif
         }
     }
 
@@ -1561,11 +1572,7 @@ public: // variables
 
     BlitHelper m_BlitHelper{ this };
 
-    template <typename TIface> CDescriptorHeapManager& GetViewAllocator();
-    template<> CDescriptorHeapManager& GetViewAllocator<ShaderResourceViewType>() { return m_SRVAllocator; }
-    template<> CDescriptorHeapManager& GetViewAllocator<UnorderedAccessViewType>() { return m_UAVAllocator; }
-    template<> CDescriptorHeapManager& GetViewAllocator<RenderTargetViewType>() { return m_RTVAllocator; }
-    template<> CDescriptorHeapManager& GetViewAllocator<DepthStencilViewType>() { return m_DSVAllocator; }
+    template <typename TIface> inline CDescriptorHeapManager& GetViewAllocator();
 
     InternalRootSignature m_InternalUAVRootSig;
     unique_comptr<ID3D12PipelineState> m_pDrawAutoPSO;
@@ -1746,6 +1753,11 @@ struct SafeRenameResourceCookie
     ~SafeRenameResourceCookie() { Delete(); }
     Resource* m_c = nullptr;
 };
+
+template<> inline CDescriptorHeapManager& ImmediateContext::GetViewAllocator<ShaderResourceViewType>() { return m_SRVAllocator; }
+template<> inline CDescriptorHeapManager& ImmediateContext::GetViewAllocator<UnorderedAccessViewType>() { return m_UAVAllocator; }
+template<> inline CDescriptorHeapManager& ImmediateContext::GetViewAllocator<RenderTargetViewType>() { return m_RTVAllocator; }
+template<> inline CDescriptorHeapManager& ImmediateContext::GetViewAllocator<DepthStencilViewType>() { return m_DSVAllocator; }
 
 } // namespace D3D12TranslationLayer
     

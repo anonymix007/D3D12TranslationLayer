@@ -36,6 +36,8 @@ public:
     void* RemovePage() noexcept;
 };
 
+class BatchedResource;
+
 class BatchedContext
 {
 private:

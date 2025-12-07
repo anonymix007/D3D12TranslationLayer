@@ -244,7 +244,7 @@ namespace D3D12TranslationLayer
     public:
         typedef TDeclVector::value_type NullType;
         typedef D3D12_CPU_DESCRIPTOR_HANDLE Descriptor;
-        static const NullType c_AnyNull = RESOURCE_DIMENSION::UNKNOWN;
+        static constexpr NullType c_AnyNull = RESOURCE_DIMENSION::UNKNOWN;
 
     public:
         CViewBoundState() noexcept(false)

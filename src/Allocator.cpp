@@ -12,9 +12,17 @@ namespace D3D12TranslationLayer
 
     void InternalHeapAllocator::Deallocate(ID3D12Resource* pResource)
     {
+#if defined(_MSC_VER) || !defined(_WIN32)
+        auto Width = pResource->GetDesc().Width;
+#else
+        D3D12_RESOURCE_DESC resDesc;
+        pResource->GetDesc(&resDesc);
+        auto Width = resDesc.Width;
+#endif
+
         m_pContext->ReturnTransitionableBufferToPool(
             m_HeapType, 
-            pResource->GetDesc().Width, 
+            Width,
             std::move(unique_comptr<ID3D12Resource>(pResource)), 
             // Guaranteed to be finished since this is only called after
             // all suballocations have been through the deferred deletion queue

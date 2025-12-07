@@ -245,11 +245,11 @@ public:
     UnderlyingAllocatorImpl* m_pAllocator;
     T* allocate(size_t size)
     {
-        return m_pAllocator->allocate<T>(size);
+        return m_pAllocator->template allocate<T>(size);
     }
     void deallocate(T* p, size_t size)
     {
-        m_pAllocator->deallocate<T>(p, size);
+        m_pAllocator->template deallocate<T>(p, size);
     }
 
     using propagate_on_container_copy_assignment = std::true_type;

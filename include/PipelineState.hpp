@@ -132,7 +132,7 @@ namespace D3D12TranslationLayer
         RootSignature* const m_pRootSignature;
         union
         {
-            struct Graphics 
+            struct //Graphics
             {
                 D3D12_GRAPHICS_PIPELINE_STATE_DESC m_Desc;
                 Shader* pVertexShader;
@@ -142,7 +142,7 @@ namespace D3D12TranslationLayer
                 Shader* pHullShader;
             } Graphics;
 
-            struct Compute
+            struct //Compute
             {
                 D3D12_COMPUTE_PIPELINE_STATE_DESC m_Desc;
                 Shader* pComputeShader;

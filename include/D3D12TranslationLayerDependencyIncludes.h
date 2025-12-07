@@ -10,9 +10,15 @@
 #endif
 
 //SDK Headers
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef _ATL_NO_WIN_SUPPORT
 #define _ATL_NO_WIN_SUPPORT
+#endif
 #include <windows.h>
 #include <atlbase.h>
 #include <comdef.h>
@@ -59,9 +65,11 @@ using std::max;
 #include <assert.h>
 #endif
 
+#if 0
 #include <evntrace.h>
 #include <traceloggingprovider.h>
 #include <MicrosoftTelemetry.h>
+#endif
 
 #define INITGUID
 #include <guiddef.h>

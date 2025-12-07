@@ -14,7 +14,15 @@ namespace D3D12TranslationLayer
     public:
         VideoDecoder(ImmediateContext *pContext, ID3D12VideoDevice* pVideoDeviceNoRef, const D3D12_VIDEO_DECODER_DESC& desc);
 
-        D3D12_VIDEO_DECODER_DESC GetDesc() { return GetForImmediateUse()->GetDesc(); }
+        D3D12_VIDEO_DECODER_DESC GetDesc() {
+#if defined(_MSC_VER) || !defined(_WIN32)
+            return GetForImmediateUse()->GetDesc();
+#else
+            D3D12_VIDEO_DECODER_DESC vidDesc;
+            GetForImmediateUse()->GetDesc(&vidDesc);
+            return vidDesc;
+#endif
+        }
     };
 
     class VideoDecoderHeap : public DeviceChildImpl<ID3D12VideoDecoderHeap>
@@ -22,7 +30,15 @@ namespace D3D12TranslationLayer
     public:
         VideoDecoderHeap(ImmediateContext *pContext, ID3D12VideoDevice* pVideoDeviceNoRef, const D3D12_VIDEO_DECODER_HEAP_DESC& desc);
 
-        D3D12_VIDEO_DECODER_HEAP_DESC GetDesc() { return GetForImmediateUse()->GetDesc(); }
+        D3D12_VIDEO_DECODER_HEAP_DESC GetDesc() {
+#if defined(_MSC_VER) || !defined(_WIN32)
+            return GetForImmediateUse()->GetDesc();
+#else
+            D3D12_VIDEO_DECODER_HEAP_DESC vidDesc;
+            GetForImmediateUse()->GetDesc(&vidDesc);
+            return vidDesc;
+#endif
+        }
     };
 
     struct ReferenceOnlyDesc
